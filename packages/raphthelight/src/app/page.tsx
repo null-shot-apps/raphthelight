@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 
 export default function Landing() {
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -135,8 +134,8 @@ function OnboardingFlow() {
         {/* Step 1: Name */}
         {step === 1 && (
           <div className="space-y-6">
-            <h2 className="text-3xl font-bold text-gray-900">Hej! What's your name?</h2>
-            <p className="text-gray-600">We'll use this to personalize your learning journey.</p>
+            <h2 className="text-3xl font-bold text-gray-900">Hej! What&apos;s your name?</h2>
+            <p className="text-gray-600">We&apos;ll use this to personalize your learning journey.</p>
             <input
               type="text"
               value={userData.name}
@@ -150,7 +149,7 @@ function OnboardingFlow() {
         {/* Step 2: Current Level */}
         {step === 2 && (
           <div className="space-y-6">
-            <h2 className="text-3xl font-bold text-gray-900">What's your Swedish level?</h2>
+            <h2 className="text-3xl font-bold text-gray-900">What&apos;s your Swedish level?</h2>
             <div className="space-y-3">
               {[
                 { value: 'absolute-beginner', label: 'Absolute Beginner', desc: 'I know nothing' },
@@ -268,4 +267,6 @@ function OnboardingFlow() {
     </div>
   );
 }
+
+
 

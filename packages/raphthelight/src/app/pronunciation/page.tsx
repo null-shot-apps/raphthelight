@@ -47,9 +47,9 @@ const pronunciationLessons = [
     difficulty: 'Advanced',
     examples: [
       { word: 'sju', ipa: 'ɧʉː', english: 'seven', tip: 'Like whispering "shh" with tongue back' },
-      { word: 'sjuk', ipa: 'ɧʉːk', english: 'sick', tip: 'Breathy "sh" from throat' },
+      { word: 'sjuk', ipa: 'ɧʉːk', english: 'sick', tip: 'Breathy &quot;sh&quot; from throat' },
       { word: 'sjunga', ipa: 'ˈɧʉŋa', english: 'to sing', tip: 'Start soft, then add voice' },
-      { word: 'kör', ipa: 'ɕøːr', english: 'choir/drive', tip: 'Softer than English "sh"' }
+      { word: 'kör', ipa: 'ɕøːr', english: 'choir/drive', tip: 'Softer than English &quot;sh&quot;' }
     ]
   },
   {
@@ -92,7 +92,7 @@ export default function PronunciationPage() {
               Master Swedish Sounds 🎵
             </h2>
             <p className="text-lg text-gray-600">
-              Swedish has unique vowels and the famous "sing-song" melody. Practice these sounds to sound like a native!
+              Swedish has unique vowels and the famous &quot;sing-song&quot; melody. Practice these sounds to sound like a native!
             </p>
           </div>
 
@@ -235,4 +235,6 @@ export default function PronunciationPage() {
     </div>
   );
 }
+
+
 

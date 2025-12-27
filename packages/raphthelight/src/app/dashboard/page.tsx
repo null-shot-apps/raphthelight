@@ -14,7 +14,7 @@ interface UserProfile {
 
 export default function Dashboard() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [currentModule, setCurrentModule] = useState(1);
+  const [currentModule] = useState(1);
 
   useEffect(() => {
     const saved = localStorage.getItem('swedishLearnerProfile');
@@ -87,7 +87,7 @@ export default function Dashboard() {
                 key={module.id}
                 module={module}
                 isUnlocked={module.id <= currentModule}
-                isCompleted={profile.completedLessons?.includes(`module-${module.id}`)}
+                isCompleted={profile.completedLessons?.includes(`module-${module.id}`) || false}
               />
             ))}
           </div>
@@ -236,4 +236,6 @@ function QuickActionCard({
     </Link>
   );
 }
+
+
 

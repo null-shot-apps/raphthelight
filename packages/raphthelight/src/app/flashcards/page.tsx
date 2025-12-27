@@ -16,8 +16,8 @@ const verbDatabase = [
   { swedish: 'ta', english: 'to take', example: 'Ta det lugnt', exampleEn: 'Take it easy' },
   { swedish: 'få', english: 'to get/receive', example: 'Kan jag få hjälp?', exampleEn: 'Can I get help?' },
   { swedish: 'tycka', english: 'to think/like', example: 'Jag tycker om dig', exampleEn: 'I like you' },
-  { swedish: 'gå', english: 'to go/walk', example: 'Jag går hem', exampleEn: 'I\'m going home' },
-  { swedish: 'veta', english: 'to know', example: 'Jag vet inte', exampleEn: 'I don\'t know' },
+  { swedish: 'gå', english: 'to go/walk', example: 'Jag går hem', exampleEn: 'I&apos;m going home' },
+  { swedish: 'veta', english: 'to know', example: 'Jag vet inte', exampleEn: 'I don&apos;t know' },
   { swedish: 'bli', english: 'to become', example: 'Jag blir glad', exampleEn: 'I become happy' },
   { swedish: 'tro', english: 'to believe/think', example: 'Jag tror det', exampleEn: 'I think so' },
   { swedish: 'börja', english: 'to start', example: 'Vi börjar nu', exampleEn: 'We start now' },
@@ -153,7 +153,7 @@ export default function FlashcardsPage() {
             <div className="text-6xl mb-6">🎉</div>
             <h2 className="text-3xl font-bold text-gray-900 mb-4">All Done for Today!</h2>
             <p className="text-lg text-gray-600 mb-8">
-              You've reviewed all your cards. Come back tomorrow for more practice!
+              You&apos;ve reviewed all your cards. Come back tomorrow for more practice!
             </p>
             <button
               onClick={() => router.push('/dashboard')}
@@ -277,4 +277,6 @@ export default function FlashcardsPage() {
     </div>
   );
 }
+
+
 
