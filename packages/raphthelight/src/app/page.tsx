@@ -12,14 +12,19 @@ type EnergyEntry = {
   activities?: string[];
 };
 
+type TimeOfDay = 'morning' | 'afternoon' | 'evening';
+type DayOfWeek = 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday' | 'Sunday';
+
 export default function EnergyForecastApp() {
   const [entries, setEntries] = useState<EnergyEntry[]>([]);
-  const [currentView, setCurrentView] = useState<'input' | 'calendar' | 'analysis'>('input');
+  const [currentView, setCurrentView] = useState<'input' | 'calendar' | 'analysis' | 'predictions'>('input');
   const [morningEnergy, setMorningEnergy] = useState<number>(5);
   const [morningNotes, setMorningNotes] = useState<string>('');
   const [eveningEnergy, setEveningEnergy] = useState<number>(5);
   const [eveningNotes, setEveningNotes] = useState<string>('');
   const [selectedActivities, setSelectedActivities] = useState<string[]>([]);
+  const [predictionDay, setPredictionDay] = useState<DayOfWeek>('Monday');
+  const [predictionTime, setPredictionTime] = useState<TimeOfDay>('morning');
 
   const activities = ['Exercise', 'Good Sleep', 'Poor Sleep', 'Stress', 'Social', 'Work Heavy', 'Relaxation'];
 
@@ -93,6 +98,92 @@ export default function EnergyForecastApp() {
     return 'bg-red-500';
   };
 
+  const predictEnergy = (day: DayOfWeek, time: TimeOfDay) => {
+    if (entries.length < 14) return null;
+
+    const dayEntries = entries.filter(entry => {
+      const entryDay = new Date(entry.date).toLocaleDateString('en-US', { weekday: 'long' });
+      return entryDay === day;
+    });
+
+    if (dayEntries.length === 0) return null;
+
+    const energies = dayEntries
+      .map(e => time === 'morning' ? e.morningEnergy : e.eveningEnergy)
+      .filter(Boolean) as number[];
+
+    if (energies.length === 0) return null;
+
+    const avgEnergy = energies.reduce((a, b) => a + b, 0) / energies.length;
+    const variance = energies.reduce((sum, e) => sum + Math.pow(e - avgEnergy, 2), 0) / energies.length;
+    const stdDev = Math.sqrt(variance);
+
+    return {
+      predicted: avgEnergy,
+      confidence: stdDev < 2 ? 'high' : stdDev < 3 ? 'medium' : 'low',
+      warning: avgEnergy < 5,
+      sampleSize: energies.length
+    };
+  };
+
+  const getBestTimesForTasks = () => {
+    if (entries.length < 14) return null;
+
+    const timeSlots: { [key: string]: number[] } = {};
+    
+    entries.forEach(entry => {
+      const day = new Date(entry.date).toLocaleDateString('en-US', { weekday: 'long' });
+      
+      if (entry.morningEnergy) {
+        const key = `${day}-morning`;
+        if (!timeSlots[key]) timeSlots[key] = [];
+        timeSlots[key].push(entry.morningEnergy);
+      }
+      
+      if (entry.eveningEnergy) {
+        const key = `${day}-evening`;
+        if (!timeSlots[key]) timeSlots[key] = [];
+        timeSlots[key].push(entry.eveningEnergy);
+      }
+    });
+
+    const avgTimeSlots = Object.entries(timeSlots).map(([slot, energies]) => ({
+      slot,
+      avg: energies.reduce((a, b) => a + b, 0) / energies.length
+    })).sort((a, b) => b.avg - a.avg);
+
+    return avgTimeSlots.slice(0, 5);
+  };
+
+  const getEnergyDrains = () => {
+    if (entries.length < 14) return null;
+
+    const timeSlots: { [key: string]: number[] } = {};
+    
+    entries.forEach(entry => {
+      const day = new Date(entry.date).toLocaleDateString('en-US', { weekday: 'long' });
+      
+      if (entry.morningEnergy) {
+        const key = `${day}-morning`;
+        if (!timeSlots[key]) timeSlots[key] = [];
+        timeSlots[key].push(entry.morningEnergy);
+      }
+      
+      if (entry.eveningEnergy) {
+        const key = `${day}-evening`;
+        if (!timeSlots[key]) timeSlots[key] = [];
+        timeSlots[key].push(entry.eveningEnergy);
+      }
+    });
+
+    const avgTimeSlots = Object.entries(timeSlots).map(([slot, energies]) => ({
+      slot,
+      avg: energies.reduce((a, b) => a + b, 0) / energies.length
+    })).sort((a, b) => a.avg - b.avg);
+
+    return avgTimeSlots.slice(0, 3);
+  };
+
   const calculateStats = () => {
     if (entries.length < 14) return null;
 
@@ -143,36 +234,46 @@ export default function EnergyForecastApp() {
         </header>
 
         {/* Navigation */}
-        <div className="flex gap-2 mb-6 bg-white rounded-lg p-2 shadow-sm">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-6 bg-white rounded-lg p-2 shadow-sm">
           <button
             onClick={() => setCurrentView('input')}
-            className={`flex-1 py-3 rounded-md font-medium transition-colors ${
+            className={`py-3 rounded-md font-medium transition-colors ${
               currentView === 'input' 
                 ? 'bg-purple-600 text-white' 
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
-            Daily Check-in
+            Check-in
           </button>
           <button
             onClick={() => setCurrentView('calendar')}
-            className={`flex-1 py-3 rounded-md font-medium transition-colors ${
+            className={`py-3 rounded-md font-medium transition-colors ${
               currentView === 'calendar' 
                 ? 'bg-purple-600 text-white' 
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
-            Calendar ({entries.length} days)
+            Calendar
           </button>
           <button
             onClick={() => setCurrentView('analysis')}
-            className={`flex-1 py-3 rounded-md font-medium transition-colors ${
+            className={`py-3 rounded-md font-medium transition-colors ${
               currentView === 'analysis' 
                 ? 'bg-purple-600 text-white' 
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
             Analysis
+          </button>
+          <button
+            onClick={() => setCurrentView('predictions')}
+            className={`py-3 rounded-md font-medium transition-colors ${
+              currentView === 'predictions' 
+                ? 'bg-purple-600 text-white' 
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            Predictions
           </button>
         </div>
 
@@ -370,82 +471,271 @@ export default function EnergyForecastApp() {
 
         {/* Analysis View */}
         {currentView === 'analysis' && (
-          <div className="bg-white rounded-xl p-6 shadow-md">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">📊 Energy Analysis</h2>
-            
-            {!stats ? (
-              <div className="text-center py-8">
-                <p className="text-gray-600 mb-2">Need at least 14 days of data for analysis</p>
-                <p className="text-3xl font-bold text-purple-600">{entries.length}/14 days</p>
-                <div className="w-full bg-gray-200 rounded-full h-3 mt-4">
-                  <div 
-                    className="bg-purple-600 h-3 rounded-full transition-all"
-                    style={{ width: `${(entries.length / 14) * 100}%` }}
-                  />
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-6">
-                {/* Average Energy */}
-                <div className="border-l-4 border-purple-600 pl-4">
-                  <h3 className="font-semibold text-gray-800 mb-1">Average Energy</h3>
-                  <p className="text-3xl font-bold text-purple-600">{stats.avgEnergy.toFixed(1)}/10</p>
-                </div>
-
-                {/* Best Day */}
-                <div className="border-l-4 border-green-600 pl-4">
-                  <h3 className="font-semibold text-gray-800 mb-1">🌟 Peak Energy Day</h3>
-                  <p className="text-xl font-bold text-green-600">
-                    {stats.bestDay.day} ({stats.bestDay.avg.toFixed(1)}/10)
-                  </p>
-                  <p className="text-sm text-gray-600 mt-1">
-                    You&apos;re most energized on {stats.bestDay.day} mornings
-                  </p>
-                </div>
-
-                {/* Activity Impact */}
-                <div className="border-l-4 border-blue-600 pl-4">
-                  <h3 className="font-semibold text-gray-800 mb-3">Activity Impact on Energy</h3>
-                  <div className="space-y-2">
-                    {stats.activityAvgs.map(({ activity, avg }) => (
-                      <div key={activity} className="flex items-center justify-between">
-                        <span className="text-gray-700">{activity}</span>
-                        <div className="flex items-center gap-2">
-                          <div className="w-32 bg-gray-200 rounded-full h-2">
-                            <div 
-                              className="bg-blue-600 h-2 rounded-full"
-                              style={{ width: `${(avg / 10) * 100}%` }}
-                            />
-                          </div>
-                          <span className="text-sm font-medium text-gray-600 w-12">
-                            {avg.toFixed(1)}/10
-                          </span>
-                        </div>
-                      </div>
-                    ))}
+          <div className="space-y-6">
+            <div className="bg-white rounded-xl p-6 shadow-md">
+              <h2 className="text-2xl font-bold text-gray-800 mb-6">📊 Energy Analysis</h2>
+              
+              {!stats ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-600 mb-2">Need at least 14 days of data for analysis</p>
+                  <p className="text-3xl font-bold text-purple-600">{entries.length}/14 days</p>
+                  <div className="w-full bg-gray-200 rounded-full h-3 mt-4">
+                    <div 
+                      className="bg-purple-600 h-3 rounded-full transition-all"
+                      style={{ width: `${(entries.length / 14) * 100}%` }}
+                    />
                   </div>
                 </div>
+              ) : (
+                <div className="space-y-6">
+                  {/* Energy Trend Graph */}
+                  <div className="border-l-4 border-purple-600 pl-4">
+                    <h3 className="font-semibold text-gray-800 mb-3">📈 Energy Trend (Last 14 Days)</h3>
+                    <div className="relative h-48 bg-gray-50 rounded-lg p-4">
+                      <div className="absolute inset-0 flex items-end justify-around px-4 pb-4">
+                        {entries.slice(-14).map((entry) => {
+                          const avgEnergy = ((entry.morningEnergy || 0) + (entry.eveningEnergy || 0)) / 
+                            ((entry.morningEnergy ? 1 : 0) + (entry.eveningEnergy ? 1 : 0));
+                          const height = (avgEnergy / 10) * 100;
+                          return (
+                            <div key={entry.id} className="flex flex-col items-center gap-1 flex-1">
+                              <div 
+                                className={`w-full max-w-[20px] rounded-t transition-all ${getEnergyColor(avgEnergy)}`}
+                                style={{ height: `${height}%` }}
+                                title={`${new Date(entry.date).toLocaleDateString()}: ${avgEnergy.toFixed(1)}`}
+                              />
+                              <span className="text-[8px] text-gray-500">
+                                {new Date(entry.date).getDate()}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
 
-                {/* Insights */}
-                <div className="bg-purple-50 rounded-lg p-4">
-                  <h3 className="font-semibold text-gray-800 mb-2">💡 Insights</h3>
-                  <ul className="space-y-2 text-sm text-gray-700">
-                    {stats.activityAvgs[0] && (
-                      <li>✨ {stats.activityAvgs[0].activity} gives you the biggest energy boost</li>
-                    )}
-                    {stats.activityAvgs[stats.activityAvgs.length - 1] && (
-                      <li>⚠️ Watch out for {stats.activityAvgs[stats.activityAvgs.length - 1].activity} - it tends to drain your energy</li>
-                    )}
-                    <li>📅 Schedule demanding tasks on {stats.bestDay.day} when you&apos;re at your peak</li>
-                  </ul>
+                  {/* Average Energy */}
+                  <div className="border-l-4 border-purple-600 pl-4">
+                    <h3 className="font-semibold text-gray-800 mb-1">Average Energy</h3>
+                    <p className="text-3xl font-bold text-purple-600">{stats.avgEnergy.toFixed(1)}/10</p>
+                  </div>
+
+                  {/* Best Day */}
+                  <div className="border-l-4 border-green-600 pl-4">
+                    <h3 className="font-semibold text-gray-800 mb-1">🌟 Peak Energy Day</h3>
+                    <p className="text-xl font-bold text-green-600">
+                      {stats.bestDay.day} ({stats.bestDay.avg.toFixed(1)}/10)
+                    </p>
+                    <p className="text-sm text-gray-600 mt-1">
+                      You&apos;re most energized on {stats.bestDay.day} mornings
+                    </p>
+                  </div>
+
+                  {/* Energy Drains */}
+                  {getEnergyDrains() && (
+                    <div className="border-l-4 border-red-600 pl-4">
+                      <h3 className="font-semibold text-gray-800 mb-2">⚠️ Energy Drains</h3>
+                      <ul className="space-y-1 text-sm text-gray-700">
+                        {getEnergyDrains()!.map(({ slot, avg }) => (
+                          <li key={slot}>
+                            {slot.replace('-', ' ')}: {avg.toFixed(1)}/10
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Activity Impact */}
+                  <div className="border-l-4 border-blue-600 pl-4">
+                    <h3 className="font-semibold text-gray-800 mb-3">Activity Impact on Energy</h3>
+                    <div className="space-y-2">
+                      {stats.activityAvgs.map(({ activity, avg }) => {
+                        const baselineAvg = stats.avgEnergy;
+                        const percentChange = ((avg - baselineAvg) / baselineAvg * 100);
+                        const percentChangeStr = percentChange.toFixed(0);
+                        return (
+                          <div key={activity} className="flex items-center justify-between">
+                            <span className="text-gray-700">{activity}</span>
+                            <div className="flex items-center gap-2">
+                              <div className="w-32 bg-gray-200 rounded-full h-2">
+                                <div 
+                                  className="bg-blue-600 h-2 rounded-full"
+                                  style={{ width: `${(avg / 10) * 100}%` }}
+                                />
+                              </div>
+                              <span className="text-sm font-medium text-gray-600 w-20">
+                                {avg.toFixed(1)} ({percentChange > 0 ? '+' : ''}{percentChangeStr}%)
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Insights */}
+                  <div className="bg-purple-50 rounded-lg p-4">
+                    <h3 className="font-semibold text-gray-800 mb-2">💡 Insights</h3>
+                    <ul className="space-y-2 text-sm text-gray-700">
+                      {stats.activityAvgs[0] && (
+                        <li>✨ {stats.activityAvgs[0].activity} gives you the biggest energy boost</li>
+                      )}
+                      {stats.activityAvgs[stats.activityAvgs.length - 1] && (
+                        <li>⚠️ Watch out for {stats.activityAvgs[stats.activityAvgs.length - 1].activity} - it tends to drain your energy</li>
+                      )}
+                      <li>📅 Schedule demanding tasks on {stats.bestDay.day} when you&apos;re at your peak</li>
+                    </ul>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Predictions View */}
+        {currentView === 'predictions' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-xl p-6 shadow-md">
+              <h2 className="text-2xl font-bold text-gray-800 mb-6">🔮 Energy Predictions</h2>
+              
+              {entries.length < 14 ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-600 mb-2">Need at least 14 days of data for predictions</p>
+                  <p className="text-3xl font-bold text-purple-600">{entries.length}/14 days</p>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {/* Prediction Tool */}
+                  <div className="border border-gray-200 rounded-lg p-4">
+                    <h3 className="font-semibold text-gray-800 mb-4">When are you planning something?</h3>
+                    
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Day</label>
+                        <select
+                          value={predictionDay}
+                          onChange={(e) => setPredictionDay(e.target.value as DayOfWeek)}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                        >
+                          <option>Monday</option>
+                          <option>Tuesday</option>
+                          <option>Wednesday</option>
+                          <option>Thursday</option>
+                          <option>Friday</option>
+                          <option>Saturday</option>
+                          <option>Sunday</option>
+                        </select>
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Time</label>
+                        <select
+                          value={predictionTime}
+                          onChange={(e) => setPredictionTime(e.target.value as TimeOfDay)}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                        >
+                          <option value="morning">Morning</option>
+                          <option value="evening">Evening</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {(() => {
+                      const prediction = predictEnergy(predictionDay, predictionTime);
+                      if (!prediction) {
+                        return <p className="text-gray-600 text-sm">Not enough data for this time slot</p>;
+                      }
+
+                      return (
+                        <div className={`rounded-lg p-4 ${prediction.warning ? 'bg-red-50 border-2 border-red-300' : 'bg-green-50 border-2 border-green-300'}`}>
+                          <div className="flex items-center gap-3 mb-2">
+                            <div className={`w-16 h-16 rounded-lg ${getEnergyColor(prediction.predicted)} flex items-center justify-center text-white font-bold text-2xl`}>
+                              {prediction.predicted.toFixed(1)}
+                            </div>
+                            <div>
+                              <p className="font-semibold text-gray-800">
+                                Predicted Energy: {prediction.predicted.toFixed(1)}/10
+                              </p>
+                              <p className="text-sm text-gray-600">
+                                Confidence: {prediction.confidence} ({prediction.sampleSize} samples)
+                              </p>
+                            </div>
+                          </div>
+                          
+                          {prediction.warning && (
+                            <div className="bg-red-100 border border-red-300 rounded p-3 mt-3">
+                              <p className="text-red-800 font-medium">⚠️ Warning: Low Energy Expected</p>
+                              <p className="text-sm text-red-700 mt-1">
+                                You historically have low energy at this time. Consider rescheduling demanding tasks.
+                              </p>
+                            </div>
+                          )}
+                          
+                          {!prediction.warning && (
+                            <div className="bg-green-100 border border-green-300 rounded p-3 mt-3">
+                              <p className="text-green-800 font-medium">✅ Good Time for Activities</p>
+                              <p className="text-sm text-green-700 mt-1">
+                                You typically have good energy at this time!
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
+                  </div>
+
+                  {/* Best Times for Tasks */}
+                  {getBestTimesForTasks() && (
+                    <div className="border-l-4 border-green-600 pl-4">
+                      <h3 className="font-semibold text-gray-800 mb-3">⭐ Best Times for Demanding Tasks</h3>
+                      <div className="space-y-2">
+                        {getBestTimesForTasks()!.map(({ slot, avg }, idx) => (
+                          <div key={slot} className="flex items-center justify-between bg-green-50 rounded-lg p-3">
+                            <div className="flex items-center gap-3">
+                              <span className="text-2xl font-bold text-green-600">#{idx + 1}</span>
+                              <div>
+                                <p className="font-medium text-gray-800">
+                                  {slot.replace('-', ' ')}
+                                </p>
+                                <p className="text-sm text-gray-600">
+                                  Average energy: {avg.toFixed(1)}/10
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <p className="text-sm text-gray-600 mt-3">
+                        💡 Schedule important meetings, workouts, or creative work during these times
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Scheduling Advice */}
+                  <div className="bg-blue-50 rounded-lg p-4">
+                    <h3 className="font-semibold text-gray-800 mb-2">📅 Scheduling Advice</h3>
+                    <ul className="space-y-2 text-sm text-gray-700">
+                      <li>✅ Book demanding tasks during your peak energy times</li>
+                      <li>⏰ Schedule routine tasks during medium energy periods</li>
+                      <li>🛋️ Reserve low energy times for rest and light activities</li>
+                      <li>📊 Check predictions before committing to plans</li>
+                    </ul>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
     </div>
   );
 }
+
+
+
+
+
+
+
 
 
