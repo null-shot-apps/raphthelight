@@ -15,7 +15,6 @@ type EnergyEntry = {
 export default function EnergyForecastApp() {
   const [entries, setEntries] = useState<EnergyEntry[]>([]);
   const [currentView, setCurrentView] = useState<'input' | 'calendar' | 'analysis'>('input');
-  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [morningEnergy, setMorningEnergy] = useState<number>(5);
   const [morningNotes, setMorningNotes] = useState<string>('');
   const [eveningEnergy, setEveningEnergy] = useState<number>(5);
@@ -116,11 +115,11 @@ export default function EnergyForecastApp() {
     // Activity correlations
     const activityImpact: { [key: string]: { count: number; totalEnergy: number } } = {};
     entries.forEach(entry => {
-      if (entry.activities && entry.eveningEnergy) {
+      if (entry.activities && entry.eveningEnergy !== undefined) {
         entry.activities.forEach(activity => {
           if (!activityImpact[activity]) activityImpact[activity] = { count: 0, totalEnergy: 0 };
           activityImpact[activity].count++;
-          activityImpact[activity].totalEnergy += entry.eveningEnergy;
+          activityImpact[activity].totalEnergy += entry.eveningEnergy!;
         });
       }
     });
@@ -400,7 +399,7 @@ export default function EnergyForecastApp() {
                     {stats.bestDay.day} ({stats.bestDay.avg.toFixed(1)}/10)
                   </p>
                   <p className="text-sm text-gray-600 mt-1">
-                    You're most energized on {stats.bestDay.day} mornings
+                    You&apos;re most energized on {stats.bestDay.day} mornings
                   </p>
                 </div>
 
@@ -437,7 +436,7 @@ export default function EnergyForecastApp() {
                     {stats.activityAvgs[stats.activityAvgs.length - 1] && (
                       <li>⚠️ Watch out for {stats.activityAvgs[stats.activityAvgs.length - 1].activity} - it tends to drain your energy</li>
                     )}
-                    <li>📅 Schedule demanding tasks on {stats.bestDay.day} when you're at your peak</li>
+                    <li>📅 Schedule demanding tasks on {stats.bestDay.day} when you&apos;re at your peak</li>
                   </ul>
                 </div>
               </div>
@@ -448,4 +447,5 @@ export default function EnergyForecastApp() {
     </div>
   );
 }
+
 
