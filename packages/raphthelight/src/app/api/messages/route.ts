@@ -5,7 +5,7 @@ const messages: Array<{ id: string; message: string; timestamp: string }> = [];
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const body = await request.json() as { message?: string };
     const { message } = body;
 
     if (!message || typeof message !== 'string' || message.trim().length === 0) {
@@ -51,4 +51,5 @@ export async function GET() {
   // Return all messages (for admin view)
   return NextResponse.json({ messages }, { status: 200 });
 }
+
 
