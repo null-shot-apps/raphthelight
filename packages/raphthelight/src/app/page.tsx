@@ -2,271 +2,150 @@
 
 import { useState } from 'react';
 
-export default function Landing() {
-  const [showOnboarding, setShowOnboarding] = useState(false);
+export default function ProfilePage() {
+  const [message, setMessage] = useState('');
+  const [charCount, setCharCount] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
-  if (showOnboarding) {
-    return <OnboardingFlow />;
-  }
+  const handleMessageChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const text = e.target.value;
+    if (text.length <= 500) {
+      setMessage(text);
+      setCharCount(text.length);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!message.trim() || isSubmitting) return;
+
+    setIsSubmitting(true);
+    setSubmitStatus('idle');
+
+    try {
+      const response = await fetch('/api/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: message.trim() })
+      });
+
+      if (response.ok) {
+        setSubmitStatus('success');
+        setMessage('');
+        setCharCount(0);
+        setTimeout(() => setSubmitStatus('idle'), 3000);
+      } else {
+        setSubmitStatus('error');
+      }
+    } catch (error) {
+      console.error('Error submitting message:', error);
+      setSubmitStatus('error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-yellow-50 to-blue-100">
-      {/* Hero Section */}
-      <main className="container mx-auto px-6 py-16">
-        <div className="max-w-4xl mx-auto text-center">
-          {/* Swedish Flag Colors Accent */}
-          <div className="flex justify-center gap-2 mb-8">
-            <div className="w-16 h-2 bg-blue-500 rounded-full"></div>
-            <div className="w-16 h-2 bg-yellow-400 rounded-full"></div>
+    <div className="min-h-screen bg-black flex items-center justify-center px-4 py-12">
+      <div className="w-full max-w-md">
+        {/* Avatar */}
+        <div className="flex justify-center mb-8">
+          <img
+            src="https://eu.docworkspace.com/d/sIFC1p7-xAdSZmMsG?sa=601.1245"
+            alt="Raphthelight"
+            className="w-32 h-32 rounded-full object-cover"
+          />
+        </div>
+
+        {/* Name/Title */}
+        <h1 className="text-white text-3xl font-bold text-center mb-3">
+          Raphthelight
+        </h1>
+
+        {/* Bio */}
+        <p className="text-gray-400 text-center mb-8 leading-relaxed">
+          learning Everyday - building web app and custom solution for businesses
+        </p>
+
+        {/* Social Links */}
+        <div className="flex justify-center gap-6 mb-12">
+          <a
+            href="https://twitter.com/raphthelight"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-gray-400 hover:text-white transition-colors"
+            aria-label="X (Twitter)"
+          >
+            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+            </svg>
+          </a>
+          <a
+            href="https://t.me/raphthelight"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-gray-400 hover:text-white transition-colors"
+            aria-label="Telegram"
+          >
+            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z" />
+            </svg>
+          </a>
+          <a
+            href="https://discord.com/users/raphthelight"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-gray-400 hover:text-white transition-colors"
+            aria-label="Discord"
+          >
+            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M20.317 4.37a19.791 19.791 0 00-4.885-1.515.074.074 0 00-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 00-5.487 0 12.64 12.64 0 00-.617-1.25.077.077 0 00-.079-.037A19.736 19.736 0 003.677 4.37a.07.07 0 00-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 00.031.057 19.9 19.9 0 005.993 3.03.078.078 0 00.084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 00-.041-.106 13.107 13.107 0 01-1.872-.892.077.077 0 01-.008-.128 10.2 10.2 0 00.372-.292.074.074 0 01.077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 01.078.01c.12.098.246.198.373.292a.077.077 0 01-.006.127 12.299 12.299 0 01-1.873.892.077.077 0 00-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 00.084.028 19.839 19.839 0 006.002-3.03.077.077 0 00.032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 00-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z" />
+            </svg>
+          </a>
+        </div>
+
+        {/* Message Form */}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label htmlFor="message" className="block text-gray-400 text-sm mb-2">
+              Leave me a message
+            </label>
+            <textarea
+              id="message"
+              value={message}
+              onChange={handleMessageChange}
+              placeholder="Type your message here..."
+              rows={6}
+              className="w-full bg-black border border-gray-800 text-white px-4 py-3 focus:outline-none focus:border-gray-600 transition-colors resize-none"
+            />
+            <div className="flex justify-between items-center mt-2">
+              <span className={`text-sm ${charCount > 450 ? 'text-red-500' : 'text-gray-600'}`}>
+                {charCount}/500
+              </span>
+            </div>
           </div>
-
-          <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-6">
-            Learn Swedish
-            <span className="block text-blue-600 mt-2">The Lagom Way</span>
-          </h1>
-
-          <p className="text-xl md:text-2xl text-gray-700 mb-4">
-            Not too much. Not too little. <span className="font-semibold italic">Just right.</span>
-          </p>
-
-          <p className="text-lg text-gray-600 mb-12 max-w-2xl mx-auto">
-            Master Swedish with a balanced approach: formal grammar meets gatusvenska (street Swedish), 
-            powered by AI conversations and cultural insights.
-          </p>
 
           <button
-            onClick={() => setShowOnboarding(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white text-xl px-12 py-4 rounded-full font-semibold shadow-lg transition-all transform hover:scale-105"
+            type="submit"
+            disabled={!message.trim() || isSubmitting}
+            className="w-full bg-white text-black py-3 font-medium hover:bg-gray-200 disabled:bg-gray-800 disabled:text-gray-600 disabled:cursor-not-allowed transition-colors"
           >
-            Börja Nu (Start Now)
+            {isSubmitting ? 'Sending...' : 'Send Message'}
           </button>
 
-          {/* Key Features */}
-          <div className="grid md:grid-cols-3 gap-8 mt-20">
-            <FeatureCard
-              icon="🎯"
-              title="SFI Track"
-              description="Official Swedish for Immigrants curriculum from A1 to B1"
-            />
-            <FeatureCard
-              icon="💬"
-              title="AI Roleplay"
-              description="Practice real scenarios: fika breaks, konditori orders, and more"
-            />
-            <FeatureCard
-              icon="🎵"
-              title="Prosody Training"
-              description="Master the Swedish sing-song melody and tricky vowels (å, ä, ö)"
-            />
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8 mt-8">
-            <FeatureCard
-              icon="📚"
-              title="En vs Ett Mastery"
-              description="Finally understand Swedish gender with clear patterns"
-            />
-            <FeatureCard
-              icon="🔄"
-              title="Smart Flashcards"
-              description="SRS system for the 1,000 most common Swedish verbs"
-            />
-            <FeatureCard
-              icon="🇸🇪"
-              title="Cultural Tips"
-              description="Learn Jantelagen and Swedish social norms naturally"
-            />
-          </div>
-        </div>
-      </main>
-    </div>
-  );
-}
-
-function FeatureCard({ icon, title, description }: { icon: string; title: string; description: string }) {
-  return (
-    <div className="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition-shadow">
-      <div className="text-4xl mb-4">{icon}</div>
-      <h3 className="text-xl font-bold text-gray-900 mb-2">{title}</h3>
-      <p className="text-gray-600">{description}</p>
-    </div>
-  );
-}
-
-function OnboardingFlow() {
-  const [step, setStep] = useState(1);
-  const [userData, setUserData] = useState({
-    name: '',
-    level: '',
-    goal: '',
-    dailyMinutes: 15
-  });
-
-  const handleNext = () => {
-    if (step < 4) setStep(step + 1);
-  };
-
-  const handleBack = () => {
-    if (step > 1) setStep(step - 1);
-  };
-
-  const handleStart = () => {
-    // Save to localStorage
-    localStorage.setItem('swedishLearnerProfile', JSON.stringify(userData));
-    window.location.href = '/dashboard';
-  };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-yellow-50 to-blue-100 flex items-center justify-center px-6">
-      <div className="bg-white rounded-3xl shadow-2xl p-8 md:p-12 max-w-2xl w-full">
-        {/* Progress Bar */}
-        <div className="flex gap-2 mb-8">
-          {[1, 2, 3, 4].map((i) => (
-            <div
-              key={i}
-              className={`h-2 flex-1 rounded-full ${
-                i <= step ? 'bg-blue-600' : 'bg-gray-200'
-              }`}
-            />
-          ))}
-        </div>
-
-        {/* Step 1: Name */}
-        {step === 1 && (
-          <div className="space-y-6">
-            <h2 className="text-3xl font-bold text-gray-900">Hej! What&apos;s your name?</h2>
-            <p className="text-gray-600">We&apos;ll use this to personalize your learning journey.</p>
-            <input
-              type="text"
-              value={userData.name}
-              onChange={(e) => setUserData({ ...userData, name: e.target.value })}
-              placeholder="Your name"
-              className="w-full px-6 py-4 text-lg border-2 border-gray-300 rounded-xl focus:border-blue-600 focus:outline-none"
-            />
-          </div>
-        )}
-
-        {/* Step 2: Current Level */}
-        {step === 2 && (
-          <div className="space-y-6">
-            <h2 className="text-3xl font-bold text-gray-900">What&apos;s your Swedish level?</h2>
-            <div className="space-y-3">
-              {[
-                { value: 'absolute-beginner', label: 'Absolute Beginner', desc: 'I know nothing' },
-                { value: 'a1', label: 'A1 - Beginner', desc: 'I know basic phrases' },
-                { value: 'a2', label: 'A2 - Elementary', desc: 'I can have simple conversations' },
-                { value: 'b1', label: 'B1 - Intermediate', desc: 'I can handle most situations' }
-              ].map((level) => (
-                <button
-                  key={level.value}
-                  onClick={() => setUserData({ ...userData, level: level.value })}
-                  className={`w-full text-left p-4 rounded-xl border-2 transition-all ${
-                    userData.level === level.value
-                      ? 'border-blue-600 bg-blue-50'
-                      : 'border-gray-200 hover:border-blue-300'
-                  }`}
-                >
-                  <div className="font-semibold text-gray-900">{level.label}</div>
-                  <div className="text-sm text-gray-600">{level.desc}</div>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Step 3: Goal */}
-        {step === 3 && (
-          <div className="space-y-6">
-            <h2 className="text-3xl font-bold text-gray-900">Why are you learning Swedish?</h2>
-            <div className="space-y-3">
-              {[
-                { value: 'moving', label: '🏠 Moving to Sweden', desc: 'I need Swedish for daily life' },
-                { value: 'work', label: '💼 Work/Study', desc: 'Professional or academic reasons' },
-                { value: 'family', label: '❤️ Family/Partner', desc: 'Connecting with loved ones' },
-                { value: 'interest', label: '🎯 Personal Interest', desc: 'I love languages and culture' }
-              ].map((goal) => (
-                <button
-                  key={goal.value}
-                  onClick={() => setUserData({ ...userData, goal: goal.value })}
-                  className={`w-full text-left p-4 rounded-xl border-2 transition-all ${
-                    userData.goal === goal.value
-                      ? 'border-blue-600 bg-blue-50'
-                      : 'border-gray-200 hover:border-blue-300'
-                  }`}
-                >
-                  <div className="font-semibold text-gray-900">{goal.label}</div>
-                  <div className="text-sm text-gray-600">{goal.desc}</div>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Step 4: Daily Commitment */}
-        {step === 4 && (
-          <div className="space-y-6">
-            <h2 className="text-3xl font-bold text-gray-900">How much time per day?</h2>
-            <p className="text-gray-600">Consistency beats intensity. Even 10 minutes daily works!</p>
-            <div className="space-y-4">
-              <div className="flex justify-between text-sm text-gray-600">
-                <span>10 min</span>
-                <span className="font-semibold text-blue-600">{userData.dailyMinutes} min</span>
-                <span>60 min</span>
-              </div>
-              <input
-                type="range"
-                min="10"
-                max="60"
-                step="5"
-                value={userData.dailyMinutes}
-                onChange={(e) => setUserData({ ...userData, dailyMinutes: parseInt(e.target.value) })}
-                className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
-              />
-            </div>
-            <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-4 mt-6">
-              <p className="text-sm text-gray-700">
-                <span className="font-semibold">💡 Lagom Tip:</span> {userData.dailyMinutes} minutes is perfect! 
-                Not too much to burn out, not too little to forget. Just right.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Navigation Buttons */}
-        <div className="flex gap-4 mt-8">
-          {step > 1 && (
-            <button
-              onClick={handleBack}
-              className="px-6 py-3 border-2 border-gray-300 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
-            >
-              Back
-            </button>
+          {submitStatus === 'success' && (
+            <p className="text-green-500 text-sm text-center">Message sent successfully!</p>
           )}
-          {step < 4 ? (
-            <button
-              onClick={handleNext}
-              disabled={
-                (step === 1 && !userData.name) ||
-                (step === 2 && !userData.level) ||
-                (step === 3 && !userData.goal)
-              }
-              className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-6 py-3 rounded-xl font-semibold transition-colors"
-            >
-              Continue
-            </button>
-          ) : (
-            <button
-              onClick={handleStart}
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors"
-            >
-              Start Learning! 🚀
-            </button>
+          {submitStatus === 'error' && (
+            <p className="text-red-500 text-sm text-center">Failed to send message. Please try again.</p>
           )}
-        </div>
+        </form>
       </div>
     </div>
   );
 }
+
 
 
 
